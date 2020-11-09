@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "589818299213",
+    "firebase_url": "https://chat-app-e083e.firebaseio.com",
+    "project_id": "chat-app-e083e",
+    "storage_bucket": "chat-app-e083e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:589818299213:android:fb1db02a5682b47789ed04",
+        "android_client_info": {
+          "package_name": "com.mohamadhazime.telegramchatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "589818299213-bu09dcoqk5gapsmn3ufu67p9sq3nmqae.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mohamadhazime.telegramchatapp",
+            "certificate_hash": "5e2bbb0e2f72b365b74998d3267420e5a5688933"
+          }
+        },
+        {
+          "client_id": "589818299213-rk5d02d4s60tv6q1u72uhmafr0g89b1m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATwL-Zz1DR5FoCRA-83g1NJ5s1_LFtavs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "589818299213-rk5d02d4s60tv6q1u72uhmafr0g89b1m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
