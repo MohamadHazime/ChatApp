@@ -180,6 +180,7 @@ class HomeScreenState extends State<HomeScreen> {
 
 class UserResult extends StatelessWidget {
   final User user;
+  final FocusNode focusNode = FocusNode();
 
   UserResult(this.user);
 
@@ -192,7 +193,10 @@ class UserResult extends StatelessWidget {
         child: Column(
           children: [
             GestureDetector(
-              onTap: () => sendUserToChatPage(context),
+              onTap: () {
+                focusNode.unfocus();
+                sendUserToChatPage(context);
+              },
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Colors.black,

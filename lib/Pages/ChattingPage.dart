@@ -79,11 +79,31 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController messageTextEditingController =
       TextEditingController();
   final FocusNode focusNode = FocusNode();
+  bool isDisplayStickers = false;
+  bool isLoading = false;
+  File imageFile;
+  var imageUrl;
 
   _ChatScreenState({
     @required this.receiverId,
     @required this.receiverPhotoUrl,
   });
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    focusNode.addListener(onFocusNodeChange);
+  }
+
+  onFocusNodeChange() {
+    if (focusNode.hasFocus) {
+      setState(() {
+        isDisplayStickers = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,11 +113,149 @@ class _ChatScreenState extends State<ChatScreen> {
           Column(
             children: [
               createListMessages(),
+              isDisplayStickers ? createStickers() : Container(),
               createInput(),
             ],
           ),
+          createLoading(),
         ],
       ),
+      onWillPop: onBackPress,
+    );
+  }
+
+  Future<bool> onBackPress() async {
+    if (isDisplayStickers) {
+      setState(() {
+        isDisplayStickers = false;
+      });
+    } else {
+      Navigator.pop(context);
+    }
+
+    return Future.value(false);
+  }
+
+  createLoading() {
+    return Positioned(
+      child: isLoading ? circularProgress() : Container(),
+    );
+  }
+
+  createStickers() {
+    return Container(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              FlatButton(
+                onPressed: () => onSendMessage('mimi1', 2),
+                child: Image.asset(
+                  'images/mimi1.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              FlatButton(
+                onPressed: () => onSendMessage('mimi2', 2),
+                child: Image.asset(
+                  'images/mimi2.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              FlatButton(
+                onPressed: () => onSendMessage('mimi3', 2),
+                child: Image.asset(
+                  'images/mimi3.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          ),
+          Row(
+            children: [
+              FlatButton(
+                onPressed: () => onSendMessage('mimi4', 2),
+                child: Image.asset(
+                  'images/mimi4.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              FlatButton(
+                onPressed: () => onSendMessage('mimi5', 2),
+                child: Image.asset(
+                  'images/mimi5.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              FlatButton(
+                onPressed: () => onSendMessage('mimi6', 2),
+                child: Image.asset(
+                  'images/mimi6.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          ),
+          Row(
+            children: [
+              FlatButton(
+                onPressed: () => onSendMessage('mimi7', 2),
+                child: Image.asset(
+                  'images/mimi7.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              FlatButton(
+                onPressed: () => onSendMessage('mimi8', 2),
+                child: Image.asset(
+                  'images/mimi8.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              FlatButton(
+                onPressed: () => onSendMessage('mimi9', 2),
+                child: Image.asset(
+                  'images/mimi9.gif',
+                  width: 50.0,
+                  height: 50.0,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          ),
+        ],
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey,
+            width: 0.5,
+          ),
+        ),
+        color: Colors.white,
+      ),
+      padding: EdgeInsets.all(5.0),
+      // height: 100.0,
     );
   }
 
@@ -111,6 +269,51 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  getStickers() {
+    focusNode.unfocus();
+    setState(() {
+      isDisplayStickers = !isDisplayStickers;
+    });
+  }
+
+  Future<void> getImageFromGallery() async {
+    imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    if (imageFile != null) {
+      setState(() {
+        isLoading = true;
+      });
+    }
+
+    uploadImagefile();
+  }
+
+  Future<void> uploadImagefile() async {
+    String fileName = DateTime.now().microsecondsSinceEpoch.toString();
+    StorageReference storageReference =
+        FirebaseStorage.instance.ref().child('Chat images').child(fileName);
+
+    StorageUploadTask storageUploadTask = storageReference.putFile(imageFile);
+    StorageTaskSnapshot storageTaskSnapshot =
+        await storageUploadTask.onComplete;
+
+    storageTaskSnapshot.ref.getDownloadURL().then(
+        (value) => (downloadUrl) {
+              imageUrl = downloadUrl;
+              setState(() {
+                isLoading = false;
+                onSendMessage(imageUrl, 1);
+              });
+            }, onError: (errorMsg) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(msg: 'Error: ' + errorMsg.toString());
+    });
+  }
+
+  onSendMessage(String contentMsg, int type) {}
+
   createInput() {
     return Container(
       child: Row(
@@ -121,12 +324,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 horizontal: 1.0,
               ),
               child: IconButton(
-                  icon: Icon(
-                    Icons.image,
-                    color: Colors.lightBlueAccent,
-                  ),
-                  onPressed: () {} // getImageFromGallery,
-                  ),
+                icon: Icon(
+                  Icons.image,
+                  color: Colors.lightBlueAccent,
+                ),
+                onPressed: getImageFromGallery,
+              ),
             ),
             color: Colors.white,
           ),
@@ -136,12 +339,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 horizontal: 1.0,
               ),
               child: IconButton(
-                  icon: Icon(
-                    Icons.face,
-                    color: Colors.lightBlueAccent,
-                  ),
-                  onPressed: () {} // getImageFromGallery,
-                  ),
+                icon: Icon(
+                  Icons.face,
+                  color: Colors.lightBlueAccent,
+                ),
+                onPressed: getStickers,
+              ),
             ),
             color: Colors.white,
           ),
@@ -170,7 +373,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   Icons.send,
                   color: Colors.lightBlueAccent,
                 ),
-                onPressed: () {},
+                onPressed: () =>
+                    onSendMessage(messageTextEditingController.text, 0),
               ),
             ),
             color: Colors.white,
