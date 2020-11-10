@@ -13,24 +13,52 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Chat extends StatelessWidget {
+  final receiverId;
+  final receiverPhotoUrl;
+  final receiverNickname;
+
+  Chat({
+    @required this.receiverId,
+    @required this.receiverPhotoUrl,
+    @required this.receiverNickname,
+  });
+
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.black,
+              backgroundImage: CachedNetworkImageProvider(receiverPhotoUrl),
+            ),
+          )
+        ],
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.lightBlue,
+        title: Text(
+          receiverNickname,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
+    );
   }
 }
 
 class ChatScreen extends StatefulWidget {
-
   @override
   State createState() => ChatScreenState();
 }
 
-
-
-
 class ChatScreenState extends State<ChatScreen> {
   @override
-  Widget build(BuildContext context) {
-
-  }
-
+  Widget build(BuildContext context) {}
 }
