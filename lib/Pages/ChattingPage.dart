@@ -49,16 +49,145 @@ class Chat extends StatelessWidget {
         ),
         centerTitle: true,
       ),
+      body: ChatScreen(
+        receiverId: receiverId,
+        receiverPhotoUrl: receiverPhotoUrl,
+      ),
     );
   }
 }
 
 class ChatScreen extends StatefulWidget {
+  final receiverId;
+  final receiverPhotoUrl;
+
+  ChatScreen({
+    @required this.receiverId,
+    @required this.receiverPhotoUrl,
+  });
+
   @override
-  State createState() => ChatScreenState();
+  State createState() => _ChatScreenState(
+        receiverId: receiverId,
+        receiverPhotoUrl: receiverPhotoUrl,
+      );
 }
 
-class ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> {
+  final receiverId;
+  final receiverPhotoUrl;
+  final TextEditingController messageTextEditingController =
+      TextEditingController();
+  final FocusNode focusNode = FocusNode();
+
+  _ChatScreenState({
+    @required this.receiverId,
+    @required this.receiverPhotoUrl,
+  });
+
   @override
-  Widget build(BuildContext context) {}
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              createListMessages(),
+              createInput(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  createListMessages() {
+    return Flexible(
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
+        ),
+      ),
+    );
+  }
+
+  createInput() {
+    return Container(
+      child: Row(
+        children: [
+          Material(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: 1.0,
+              ),
+              child: IconButton(
+                  icon: Icon(
+                    Icons.image,
+                    color: Colors.lightBlueAccent,
+                  ),
+                  onPressed: () {} // getImageFromGallery,
+                  ),
+            ),
+            color: Colors.white,
+          ),
+          Material(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: 1.0,
+              ),
+              child: IconButton(
+                  icon: Icon(
+                    Icons.face,
+                    color: Colors.lightBlueAccent,
+                  ),
+                  onPressed: () {} // getImageFromGallery,
+                  ),
+            ),
+            color: Colors.white,
+          ),
+          Flexible(
+            child: Container(
+              child: TextField(
+                style: TextStyle(color: Colors.black, fontSize: 15.0),
+                controller: messageTextEditingController,
+                decoration: InputDecoration.collapsed(
+                  hintText: 'Write here...',
+                  hintStyle: TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+                focusNode: focusNode,
+              ),
+            ),
+          ),
+          Material(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: 8.0,
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.send,
+                  color: Colors.lightBlueAccent,
+                ),
+                onPressed: () {},
+              ),
+            ),
+            color: Colors.white,
+          ),
+        ],
+      ),
+      width: double.infinity,
+      height: 50.0,
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey,
+            width: 0.5,
+          ),
+        ),
+        color: Colors.white,
+      ),
+    );
+  }
 }
