@@ -22,11 +22,15 @@ class HomeScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State createState() => HomeScreenState();
+  State createState() => HomeScreenState(currentUserId: currentUserId);
 }
 
 class HomeScreenState extends State<HomeScreen> {
   TextEditingController searchTextEditingController = TextEditingController();
+  Future<QuerySnapshot> futureSearchResults;
+  final currentUserId;
+
+  HomeScreenState({@required this.currentUserId});
 
   homePageHeader() {
     return AppBar(
@@ -86,6 +90,7 @@ class HomeScreenState extends State<HomeScreen> {
               onPressed: emptyTextFormField,
             ),
           ),
+          onChanged: controlSearching,
         ),
       ),
     );
@@ -95,15 +100,125 @@ class HomeScreenState extends State<HomeScreen> {
     searchTextEditingController.clear();
   }
 
+  controlSearching(String userName) {
+    Future<QuerySnapshot> allFoundUsers = Firestore.instance
+        .collection('users')
+        .where('nickname', isGreaterThanOrEqualTo: userName)
+        .getDocuments();
+
+    setState(() {
+      futureSearchResults = allFoundUsers;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: homePageHeader(),
+      body: futureSearchResults == null
+          ? displayNoSearchResultScreen()
+          : displayUsersFoundScreen(),
+    );
+  }
+
+  displayUsersFoundScreen() {
+    return FutureBuilder(
+      future: futureSearchResults,
+      builder: (context, dataSnapshot) {
+        if (!dataSnapshot.hasData) {
+          return circularProgress();
+        }
+
+        List<UserResult> searchUserResult = [];
+        dataSnapshot.data.documents.forEach((document) {
+          User eachUser = User.fromDocument(document);
+          UserResult userResult = UserResult(eachUser);
+
+          if (currentUserId != document['id']) {
+            searchUserResult.add(userResult);
+          }
+        });
+
+        return ListView(
+          children: searchUserResult,
+        );
+      },
+    );
+  }
+
+  displayNoSearchResultScreen() {
+    final Orientation orientation = MediaQuery.of(context).orientation;
+
+    return Container(
+      child: Center(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Icon(
+              Icons.group,
+              color: Colors.lightBlueAccent,
+              size: 200.0,
+            ),
+            Text(
+              'Search users',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.lightBlueAccent,
+                fontWeight: FontWeight.w500,
+                fontSize: 50.0,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class UserResult extends StatelessWidget {
+  final User user;
+
+  UserResult(this.user);
+
   @override
-  Widget build(BuildContext context) {}
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(4.0),
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            GestureDetector(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.black,
+                  backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+                ),
+                title: Text(
+                  user.nickname,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'Joined: ' +
+                      DateFormat('dd MMMM, yyyy - hh:mm').format(
+                        DateTime.fromMillisecondsSinceEpoch(
+                          int.parse(user.createdAt),
+                        ),
+                      ),
+                  style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14.0,
+                      fontStyle: FontStyle.italic),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

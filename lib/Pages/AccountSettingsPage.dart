@@ -89,8 +89,69 @@ class SettingsScreenState extends State<SettingsScreen> {
         isLoading = true;
       });
 
-      // uploadImageToFirestoreAndStorage();
+      updateImage();
     }
+  }
+
+  updateImage() async {
+    String mFileName = id;
+    StorageReference storageReference =
+        FirebaseStorage.instance.ref().child(mFileName);
+    StorageUploadTask storageUploadTask =
+        storageReference.putFile(imageFileAvatar);
+    StorageTaskSnapshot storageTaskSnapshot;
+    storageUploadTask.onComplete.then((value) {
+      if (value.error == null) {
+        storageTaskSnapshot = value;
+
+        storageTaskSnapshot.ref.getDownloadURL().then((newImageDownload) {
+          photoUrl = newImageDownload;
+
+          Firestore.instance.collection('users').document(id).updateData({
+            'photoUrl': photoUrl,
+          }).then((data) async {
+            await preferences.setString('photoUrl', photoUrl);
+
+            setState(() {
+              isLoading = false;
+            });
+
+            Fluttertoast.showToast(msg: 'Updated successfully');
+          });
+        }, onError: (errorMsg) {
+          setState(() {
+            isLoading = false;
+          });
+          Fluttertoast.showToast(msg: 'Error occured in getting download url.');
+        });
+      }
+    }, onError: (errorMsg) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(msg: errorMsg.toString());
+    });
+  }
+
+  updateData() async {
+    nicknameFocusNode.unfocus();
+    aboutMeFocusNode.unfocus();
+
+    Firestore.instance.collection('users').document(id).updateData({
+      'photoUrl': photoUrl,
+      'aboutMe': aboutMe,
+      'nickname': nickname,
+    }).then((data) async {
+      await preferences.setString('photoUrl', photoUrl);
+      await preferences.setString('aboutMe', aboutMe);
+      await preferences.setString('nickname', nickname);
+
+      setState(() {
+        isLoading = false;
+      });
+
+      Fluttertoast.showToast(msg: 'Updated successfully');
+    });
   }
 
   final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -280,7 +341,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   splashColor: Colors.transparent,
                   textColor: Colors.white,
                   padding: EdgeInsets.fromLTRB(30.0, 10.0, 30.0, 10.0),
-                  onPressed: () {},
+                  onPressed: updateData,
                 ),
                 margin: EdgeInsets.only(
                   top: 50.0,
