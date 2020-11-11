@@ -284,11 +284,11 @@ class _ChatScreenState extends State<ChatScreen> {
   createListMessages() {
     return Flexible(
         // child: chatId == '' ? ,
-        // child: Center(
-        //   child: CircularProgressIndicator(
-        //     valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
-        //   ),
-        // ),
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
+          ),
+        ),
         );
   }
 
