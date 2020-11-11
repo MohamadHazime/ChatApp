@@ -78,11 +78,15 @@ class _ChatScreenState extends State<ChatScreen> {
   final receiverPhotoUrl;
   final TextEditingController messageTextEditingController =
       TextEditingController();
+  final ScrollController listScrollController = ScrollController();
   final FocusNode focusNode = FocusNode();
   bool isDisplayStickers = false;
   bool isLoading = false;
   File imageFile;
   var imageUrl;
+  String chatId = '';
+  SharedPreferences preferences;
+  String id;
 
   _ChatScreenState({
     @required this.receiverId,
@@ -95,6 +99,24 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     focusNode.addListener(onFocusNodeChange);
+    readLocal();
+  }
+
+  readLocal() async {
+    preferences = await SharedPreferences.getInstance();
+    id = preferences.getString('id') ?? '';
+
+    if (id.hashCode <= receiverId.hashCode) {
+      chatId = '$id-$receiverId';
+    } else {
+      chatId = '$receiverId-$id';
+    }
+
+    Firestore.instance.collection('users').document(id).updateData({
+      'chattingWith': receiverId,
+    });
+
+    setState(() {});
   }
 
   onFocusNodeChange() {
@@ -261,11 +283,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   createListMessages() {
     return Flexible(
-      child: Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
-        ),
-      ),
+      child: chatId == '' ? ,
+      // child: Center(
+      //   child: CircularProgressIndicator(
+      //     valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
+      //   ),
+      // ),
     );
   }
 
@@ -312,7 +335,35 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  onSendMessage(String contentMsg, int type) {}
+  onSendMessage(String contentMsg, int type) {
+    // type = 0 => txt msg
+    // type = 1 => image file
+    // type = 2 => sticker file
+    if (contentMsg != '') {
+      messageTextEditingController.clear();
+
+      var docRef = Firestore.instance
+          .collection('messages')
+          .document(chatId)
+          .collection(chatId)
+          .document(DateTime.now().microsecondsSinceEpoch.toString());
+
+      Firestore.instance.runTransaction((transaction) async {
+        await transaction.set(
+          docRef,
+          {
+            'idFrom': id,
+            'idTo': receiverId,
+            'timestamp': DateTime.now().microsecondsSinceEpoch.toString(),
+            'content': contentMsg,
+            'type': type,
+          },
+        );
+      });
+      listScrollController.animateTo(0.0,
+          duration: Duration(milliseconds: 300), curve: Curves.easeOut);
+    } else {}
+  }
 
   createInput() {
     return Container(
